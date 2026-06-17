@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Living Church – Hosting Rotation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f0ed; color: #1a1a1a; min-height: 100vh; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #d85a30, #e8845e); padding: 1.25rem 1rem 1rem; color: #fff; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .header p { font-size: 13px; opacity: .85; margin-top: 3px; }
+
+  .main { max-width: 600px; margin: 0 auto; padding: 1rem; }
+
+  /* Team selector */
+  .slabel { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .team-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+  .pill {
+    padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid #ddd; background: #fff; color: #666;
+    transition: all .15s; user-select: none;
+  }
+  .pill.on { background: #faece7; color: #993c1d; border-color: #d85a30; font-weight: 700; }
+
+  /* Team info */
+  .tcard { background: #faece7; border-radius: 12px; padding: 12px 16px; margin-bottom: 1rem; }
+  .tcard-name { font-size: 17px; font-weight: 700; color: #993c1d; }
+  .tcard-sub { font-size: 13px; color: #633806; margin-top: 3px; }
+  .tcard-badge { display: inline-block; font-size: 12px; background: #f5c4b3; color: #993c1d; border-radius: 20px; padding: 3px 12px; margin-top: 8px; font-weight: 600; }
+
+  /* Controls */
+  .ctrl-card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 1rem; border: 1px solid #eee; }
+  .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .fld { display: flex; flex-direction: column; gap: 5px; }
+  .fld label { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: .05em; }
+  select {
+    padding: 10px 10px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px; background: #fafafa; color: #1a1a1a;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    padding-right: 30px;
+  }
+  .genbtn {
+    width: 100%; padding: 13px; border-radius: 10px; border: none;
+    background: #d85a30; color: #fff; font-size: 15px; font-weight: 700;
+    cursor: pointer; letter-spacing: .2px;
+  }
+  .genbtn:active { background: #993c1d; }
+
+  /* Cycle info */
+  .cinfo { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; font-size: 13px; color: #555; line-height: 1.5; }
+  .cinfo strong { color: #1a1a1a; }
+  .warn { font-size: 12px; color: #854f0b; background: #faeeda; border-radius: 8px; padding: 8px 12px; margin-bottom: 1rem; line-height: 1.5; }
+
+  /* Month blocks */
+  .mblock { background: #fff; border-radius: 12px; margin-bottom: .85rem; overflow: hidden; border: 1px solid #eee; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  .mhead { background: #f8f6f4; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
+  .mname { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .mprog { font-size: 12px; color: #993c1d; background: #f5c4b3; border-radius: 20px; padding: 3px 12px; font-weight: 600; }
+
+  /* Gatherings — stacked on mobile */
+  .gcol { padding: 12px 14px; }
+  .gcol + .gcol { border-top: 1px solid #eee; }
+  .glabel { font-size: 12px; font-weight: 700; color: #d85a30; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+
+  /* Member rows */
+  .mrow { display: flex; align-items: flex-start; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f5f5f5; }
+  .mrow:last-child { border-bottom: none; }
+  .mrow input[type=checkbox] {
+    width: 20px; height: 20px; accent-color: #d85a30;
+    cursor: pointer; flex-shrink: 0; margin-top: 2px;
+  }
+  .mrow.done .rname { text-decoration: line-through; color: #bbb; }
+  .mrow.done .rsub { text-decoration: line-through; color: #ccc; }
+  .rname { font-size: 15px; color: #1a1a1a; line-height: 1.4; font-weight: 500; }
+  .rsub { font-size: 12px; color: #aaa; margin-top: 2px; line-height: 1.3; }
+  .rcnt { font-size: 11px; background: #f3f3f3; color: #888; border-radius: 8px; padding: 3px 9px; margin-left: auto; flex-shrink: 0; white-space: nowrap; margin-top: 3px; font-weight: 500; }
+  .gfoot { font-size: 12px; color: #bbb; margin-top: 8px; padding-top: 8px; border-top: 1px solid #f5f5f5; }
+  .rest { font-size: 13px; color: #ccc; padding: 6px 0; font-style: italic; }
+
+  .empty { text-align: center; padding: 2.5rem 1rem; color: #bbb; font-size: 14px; line-height: 1.6; }
+  .footer { text-align: center; padding: 2rem 1rem; font-size: 12px; color: #ccc; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏠 Hosting Rotation</h1>
+  <p>Living Church – Dream Team · 2 gatherings per month</p>
+</div>
+
+<div class="main">
+
+  <div class="slabel">Your team</div>
+  <div class="team-bar" id="teamBar"></div>
+  <div id="teamInfo"></div>
+
+  <div class="ctrl-card">
+    <div class="ctrl-grid">
+      <div class="fld">
+        <label for="mp">Max people</label>
+        <select id="mp">
+          <option value="4">4 max</option>
+          <option value="5" selected>5 max</option>
+          <option value="6">6 max</option>
+          <option value="8">8 max</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label for="sm">Start month</label>
+        <select id="sm"></select>
+      </div>
+      <div class="fld">
+        <label for="nm">Months to show</label>
+        <select id="nm">
+          <option value="3">3 months</option>
+          <option value="6" selected>6 months</option>
+          <option value="12">Full year</option>
+        </select>
+      </div>
+    </div>
+    <button class="genbtn" onclick="gen()">▶ Generate my schedule</button>
+  </div>
+
+  <div id="cycleInfo"></div>
+  <div id="output">
+    <div class="empty">Select your team above<br>then tap <strong>Generate my schedule</strong></div>
+  </div>
+
+</div>
+
+<div class="footer">Living Church Dream Team © 2026</div>
+
+<script>
+var MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+var T = {
+  "Food & Beverage": {
+    l: ["Davide","Maryanne"],
+    m: [
+      {k:"FJ",  n:"Fabio & Juliana",      s:"+ 2 children",                       p:4},
+      {k:"Ma",  n:"Marie",                s:"+ 2 children",                       p:3},
+      {k:"Mg",  n:"Maggie",               s:"+ 2 children",                       p:3},
+      {k:"Re",  n:"Reenoka",              s:"",                                   p:1},
+      {k:"Ch",  n:"Christiana",           s:"",                                   p:1},
+      {k:"Ad",  n:"Adeola",               s:"",                                   p:1},
+      {k:"Ms",  n:"Maisie",               s:"",                                   p:1}
+    ]
+  },
+  "Greeters": {
+    l: ["Domenico","Roberta"],
+    m: [
+      {k:"OT",  n:"Opemipo & Toun",       s:"Toun also serves in Info Point",     p:2},
+      {k:"SJ",  n:"Saraspandee & Joanna", s:"",                                   p:2},
+      {k:"La",  n:"Larissa",              s:"",                                   p:1},
+      {k:"AM",  n:"Angela M.",            s:"",                                   p:1}
+    ]
+  },
+  "Info Point": {
+    l: ["Quinette"],
+    m: [
+      {k:"MF",  n:"Miya, Ria & Sonia",   s:"",                                   p:3},
+      {k:"ER",  n:"Eugenia & Rebecca",    s:"Rebecca leads Ushers",               p:2},
+      {k:"TO",  n:"Toun & Opemipo",       s:"Opemipo also serves in Greeters",    p:2},
+      {k:"Ca",  n:"Caitlin",              s:"",                                   p:1}
+    ]
+  },
+  "Living Kids": {
+    l: ["Veronica","Pietro","Angela S."],
+    m: [
+      {k:"BT",  n:"Bethany & Toby",       s:"",                                   p:2},
+      {k:"LA",  n:"Lucas & Alison",       s:"Alison – not serving",               p:2},
+      {k:"BO",  n:"Benita & Oscar",       s:"Oscar also serves in Media",         p:2},
+      {k:"Ru",  n:"Ruth",                 s:"",                                   p:1},
+      {k:"Cr",  n:"Charis",               s:"",                                   p:1},
+      {k:"Sm",  n:"Smitha",               s:"",                                   p:1},
+      {k:"Ir",  n:"Irish",                s:"",                                   p:1},
+      {k:"Ar",  n:"Arpana",               s:"",                                   p:1}
+    ]
+  },
+  "Media Team": {
+    l: ["Tito","Marco","Anna"],
+    m: [
+      {k:"FH",  n:"Felipe & Hanna",       s:"Hanna – not serving",                p:2},
+      {k:"DA",  n:"Daniel & Amanda",      s:"Amanda – not serving",               p:2},
+      {k:"OB",  n:"Oscar & Benita",       s:"Benita also serves in Living Kids",  p:2},
+      {k:"Pr",  n:"Prashani",             s:"",                                   p:1},
+      {k:"MkS", n:"Mark S.",              s:"",                                   p:1},
+      {k:"Ni",  n:"Nishita",              s:"",                                   p:1},
+      {k:"En",  n:"Enyo",                 s:"",                                   p:1},
+      {k:"Ji",  n:"Jillian",              s:"",                                   p:1}
+    ]
+  },
+  "Parking Team": {
+    l: ["Shawn"],
+    m: [
+      {k:"Tb",  n:"Tobi",                 s:"",                                   p:1},
+      {k:"Es",  n:"Esther",               s:"",                                   p:1}
+    ]
+  },
+  "Tech Team": {
+    l: ["Antonino"],
+    m: [
+      {k:"MkSS",n:"Mark & Sarah S.",      s:"+ 2 children",                       p:4},
+      {k:"Pa",  n:"Paras",                s:"",                                   p:1},
+      {k:"Em",  n:"Emmanuel",             s:"",                                   p:1}
+    ]
+  },
+  "Ushers": {
+    l: ["Giulia","Rebecca"],
+    m: [
+      {k:"AD",  n:"Anil & Deeksha",       s:"",                                   p:2},
+      {k:"Tr",  n:"Taruna & husband",     s:"Husband – not serving",              p:2},
+      {k:"Me",  n:"Melody",               s:"",                                   p:1},
+      {k:"Pt",  n:"Patricia",             s:"",                                   p:1},
+      {k:"Li",  n:"Livia",                s:"",                                   p:1},
+      {k:"In",  n:"Inese",                s:"",                                   p:1}
+    ]
+  }
+};
+
+var at = "Food & Beverage", chk = {};
+
+var smEl = document.getElementById('sm');
+var nowM = new Date().getMonth();
+MN.forEach(function(m, i) {
+  var o = document.createElement('option');
+  o.value = i; o.textContent = m;
+  if (i === nowM) o.selected = true;
+  smEl.appendChild(o);
+});
+
+function buildBar() {
+  document.getElementById('teamBar').innerHTML = Object.keys(T).map(function(n) {
+    return '<div class="pill' + (n === at ? ' on' : '') + '" onclick="sel(\'' + n.replace(/'/g, "\\'") + '\')">' + n + '</div>';
+  }).join('');
+}
+
+function buildInfo() {
+  var t = T[at];
+  var tot = t.m.reduce(function(s, m) { return s + m.p; }, 0);
+  document.getElementById('teamInfo').innerHTML =
+    '<div class="tcard">' +
+    '<div class="tcard-name">' + at + '</div>' +
+    '<div class="tcard-sub">Supervisors: ' + t.l.join(' · ') + '</div>' +
+    '<div><span class="tcard-badge">' + t.m.length + ' households · ' + tot + ' people total</span></div>' +
+    '</div>';
+}
+
+function sel(n) {
+  at = n; buildBar(); buildInfo();
+  document.getElementById('output').innerHTML = '<div class="empty">Tap <strong>Generate my schedule</strong> to build your rotation.</div>';
+  document.getElementById('cycleInfo').innerHTML = '';
+}
+
+buildBar(); buildInfo();
+
+function makeGroups(members, max) {
+  var sorted = members.slice().sort(function(a, b) { return b.p - a.p; });
+  var gs = [];
+  sorted.forEach(function(m) {
+    var placed = false;
+    for (var i = 0; i < gs.length; i++) {
+      var sz = gs[i].reduce(function(s, x) { return s + x.p; }, 0);
+      if (sz + m.p <= max) { gs[i].push(m); placed = true; break; }
+    }
+    if (!placed) gs.push([m]);
+  });
+  return gs;
+}
+
+function hcLabel(g) {
+  var tot = g.reduce(function(s, m) { return s + m.p; }, 0);
+  return '~' + tot + ' ' + (tot === 1 ? 'person' : 'people') + ' expected';
+}
+
+function mrow(m, mk) {
+  var rk = mk + '__' + m.k;
+  return '<div class="mrow" id="r' + rk + '">' +
+    '<input type="checkbox" data-mk="' + mk + '" onchange="tog(\'' + rk + '\')">' +
+    '<div style="flex:1"><div class="rname">' + m.n + '</div>' +
+    (m.s ? '<div class="rsub">' + m.s + '</div>' : '') + '</div>' +
+    (m.p > 1 ? '<span class="rcnt">' + m.p + ' people</span>' : '') +
+    '</div>';
+}
+
+function tog(k) {
+  chk[k] = !chk[k];
+  var r = document.getElementById('r' + k);
+  if (r) r.classList.toggle('done', chk[k]);
+  var mk = k.split('__')[0];
+  var p = document.getElementById('pp' + mk);
+  if (!p) return;
+  var all = document.querySelectorAll('[data-mk="' + mk + '"]');
+  var done = [].filter.call(all, function(c) { return c.checked; }).length;
+  p.textContent = done + ' / ' + all.length + ' invited';
+}
+
+function gen() {
+  var max = parseInt(document.getElementById('mp').value);
+  var start = parseInt(document.getElementById('sm').value);
+  var nm = parseInt(document.getElementById('nm').value);
+  var members = T[at].m;
+  var gs = makeGroups(members, max);
+  var cm = Math.ceil(gs.length / 2);
+  var over = gs.filter(function(g) { return g.reduce(function(s,m){return s+m.p;},0) > max; });
+
+  var ci = '<div class="cinfo">📋 <strong>' + gs.length + ' gatherings</strong> needed — everyone visited every <strong>' + cm + ' month' + (cm > 1 ? 's' : '') + '</strong></div>';
+  if (over.length) ci += '<div class="warn">⚠️ ' + over.length + ' gathering' + (over.length > 1 ? 's' : '') + ' is slightly over the limit because one household alone is larger than ' + max + '. Consider raising the limit for those evenings.</div>';
+  document.getElementById('cycleInfo').innerHTML = ci;
+
+  var html = '';
+  for (var i = 0; i < nm; i++) {
+    var mi = (start + i) % 12;
+    var mk = at.replace(/\W/g, '') + i;
+    var g1 = gs[(i * 2) % gs.length];
+    var g2 = gs.length > 1 ? gs[(i * 2 + 1) % gs.length] : null;
+    var total = g1.length + (g2 ? g2.length : 0);
+
+    html += '<div class="mblock">' +
+      '<div class="mhead"><span class="mname">📅 ' + MN[mi] + '</span>' +
+      '<span class="mprog" id="pp' + mk + '">0 / ' + total + ' invited</span></div>' +
+      '<div class="gcol"><div class="glabel">🏠 Gathering 1</div>' +
+      g1.map(function(m) { return mrow(m, mk); }).join('') +
+      '<div class="gfoot">' + hcLabel(g1) + '</div></div>' +
+      '<div class="gcol"><div class="glabel">🏠 Gathering 2</div>' +
+      (g2
+        ? g2.map(function(m) { return mrow(m, mk); }).join('') + '<div class="gfoot">' + hcLabel(g2) + '</div>'
+        : '<div class="rest">Rest / catch-up week</div>') +
+      '</div></div>';
+  }
+
+  document.getElementById('output').innerHTML = html;
+}
+</script>
+</body>
+</html>
